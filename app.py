@@ -1,5 +1,5 @@
 import os
-from flask import Flask, request, render_template
+from flask import Flask, request
 import sqlite3
 
 
@@ -20,8 +20,7 @@ def dict_factory(cursor, row):
 
 
 def get_db_connection():
-    conn = sqlite3.connect('database.db')
-    # conn.row_factory = sqlite3.Row
+    conn = sqlite3.connect('db_handler/database.db')
     conn.row_factory = dict_factory
     return conn
 
@@ -52,6 +51,21 @@ def get_items(category_id):
     }
 
 
+@app.route('/insert_item', methods=['POST'])
+def insert_item():
+    category_id = request.json.get('category_id')
+    item_name = request.json.get('item_name')
+
+    conn = get_db_connection()
+    conn.execute('INSERT INTO item (category_id, item_name) VALUES (?, ?)', (category_id, item_name))
+    conn.commit()
+    conn.close()
+
+    return {
+        'status': True
+    }
+
+
 @app.route('/edit_item', methods=['POST'])
 def edit_item():
     item_id = request.json.get('item_id')
@@ -59,6 +73,20 @@ def edit_item():
 
     conn = get_db_connection()
     conn.execute('UPDATE item SET item_name = ? WHERE id = ?', (new_item_name, item_id))
+    conn.commit()
+    conn.close()
+
+    return {
+        'status': True
+    }
+
+
+@app.route('/delete_item', methods=['POST'])
+def delete_item():
+    item_id = request.json.get('item_id')
+
+    conn = get_db_connection()
+    conn.execute('DELETE FROM item WHERE id = ?', (item_id,))
     conn.commit()
     conn.close()
 

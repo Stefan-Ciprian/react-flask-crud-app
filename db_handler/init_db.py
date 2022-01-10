@@ -1,9 +1,9 @@
 import sqlite3
 
-connection = sqlite3.connect('database.db')
+connection = sqlite3.connect('db_handler/database.db')
 
 
-with open('schema.sql') as f:
+with open('db_handler/schema.sql') as f:
     connection.executescript(f.read())
 
 cur = connection.cursor()

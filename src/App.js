@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import axios from "axios";
-import { MdModeEdit, MdDelete } from 'react-icons/md'
+import { MdModeEdit, MdDelete, MdAdd } from 'react-icons/md'
 import './App.css';
+import {Col, Container, Row} from "react-bootstrap";
+import Alert from 'react-bootstrap/Alert';
 
 
 class App extends Component {
@@ -11,11 +13,15 @@ class App extends Component {
             items: [],
             categories: [],
             currentCategoryId: 1,
-            editItemName: ""
+            editItemName: "",
+            insertItemName: "",
+            showAlert: false,
+            showAddForm: false,
+            alertText: ""
         };
 
         this.handleChange = this.handleChange.bind(this);
-        this.closeAlert = this.closeAlert.bind(this);
+        this.handleInsertChange = this.handleInsertChange.bind(this);
     }
 
     componentDidMount() {
@@ -46,15 +52,38 @@ class App extends Component {
         this.getItems(id);
     }
 
-    editItem(id) {
+    insertItem() {
+        const result = window.confirm("Are you sure you want to insert this item?");
+
+        if (result) {
+            axios.post('/insert_item', {
+                'category_id': this.state.currentCategoryId,
+                'item_name': this.state.insertItemName
+            }).then(response => {
+                this.setState({
+                    showAlert: true,
+                    alertText: "Item inserted!",
+                    showAddForm: false
+                });
+                this.getItems(this.state.currentCategoryId);
+            }).catch(function (error) {
+                console.log(error);
+            });
+        }
+    }
+
+    editItem(id, itemName) {
         const result = window.confirm("Are you sure you want to edit this item?");
 
         if (result) {
             axios.post('/edit_item', {
                 'item_id': id,
-                'new_item_name': this.state.editItemName
+                'new_item_name': this.state.editItemName ? this.state.editItemName : itemName
             }).then(response => {
-                console.log(response.data);
+                this.setState({
+                    showAlert: true,
+                    alertText: "Item edited!"
+                });
                 this.getItems(this.state.currentCategoryId);
             }).catch(function (error) {
                 console.log(error);
@@ -63,15 +92,37 @@ class App extends Component {
     }
 
     deleteItem(id) {
-        this.getItems(id);
+        const result = window.confirm("Are you sure you want to delete this item?");
+
+        if (result) {
+            axios.post('/delete_item', {
+                'item_id': id
+            }).then(response => {
+                this.setState({
+                    showAlert: true,
+                    alertText: "Item deleted!"
+                });
+                this.getItems(this.state.currentCategoryId);
+            }).catch(function (error) {
+                console.log(error);
+            });
+        }
     }
 
     handleChange(e) {
         this.setState({ editItemName: e.target.value });
     }
 
-    closeAlert() {
-        alert('closed');
+    handleInsertChange(e) {
+        this.setState({ insertItemName: e.target.value });
+    }
+
+    setShow(value) {
+        this.setState({ showAlert: value });
+    }
+
+    showAdd() {
+        this.setState({ showAddForm: !this.state.showAddForm });
     }
 
     render() {
@@ -87,31 +138,31 @@ class App extends Component {
         const items = this.state.items.map((item) => {
             return (
                 <li className="list-group-item" key={item['id']}>
-                    <div className="row">
-                        <div className="col-10 mt-1">
+                    <Row>
+                        <Col xs={7} md={8} lg={10}>
                             <div>
                                 <input className="form-control" type="text" defaultValue={item['item_name']} onChange={this.handleChange} />
                             </div>
-                        </div>
-                        <div className="col-2">
+                        </Col>
+                        <Col xs={5} md={4} lg={2}>
                             <button type="button" className="btn btn-default btn-sm"
-                                    onClick={() => this.editItem(item['id'])}>
+                                    onClick={() => this.editItem(item['id'], item['item_name'])}>
                                 <MdModeEdit size={20}/>
                             </button>
                             <button type="button" className="btn btn-default btn-sm"
                                     onClick={() => this.deleteItem(item['id'])}>
                                 <MdDelete size={20}/>
                             </button>
-                        </div>
-                    </div>
+                        </Col>
+                    </Row>
                 </li>
             )
         });
 
         return (
-            <div className="container">
-                <div className="row main-row">
-                    <div className="col-4 main-col">
+            <Container>
+                <Row>
+                    <Col sm={4} className="main-col">
                         <div className="main">
                             <div className="d-flex flex-column flex-shrink-0 p-3 text-white bg-dark">
                                 <a href="/" className="d-flex align-items-center mb-3 mb-md-0 me-md-auto text-white text-decoration-none">
@@ -123,20 +174,44 @@ class App extends Component {
                                     </ul>
                             </div>
                         </div>
-                    </div>
-                    <div className="col-8 main-col">
-                        <div className="alert alert-warning alert-dismissible fade show" role="alert">
-                            <strong>Holy guacamole!</strong> You should check in on some of those fields below.
-                            <button type="button" className="close" onClick={this.closeAlert}>
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
+                    </Col>
+                    <Col sm={8} className="main-col">
+                        { this.state.showAlert ?
+                            <Alert className="mt-3" variant="success" onClose={() => this.setShow(false)} dismissible>
+                                <Alert.Heading>{this.state.alertText}</Alert.Heading>
+                            </Alert>
+                            : ""}
                          <ul className="list-group">
                              {items}
                         </ul>
-                    </div>
-                </div>
-            </div>
+                        <Row>
+                            <Col sm={6}>
+                                <button type="button" className="btn btn-default"
+                                    onClick={() => this.showAdd()}><MdAdd size={20}/> Add item
+                                </button>
+                            </Col>
+                        </Row>
+                        { this.state.showAddForm ?
+                            <Row>
+                                <Col>
+                                    <Row className="mt-2">
+                                        <Col sm={6}>
+                                            <input className="form-control" type="text" defaultValue="" onChange={this.handleInsertChange} />
+                                        </Col>
+                                    </Row>
+                                    <Row className="mt-2">
+                                        <Col>
+                                            <button type="button" className="btn btn-default btn-primary"
+                                            onClick={() => this.insertItem()}>Save item
+                                        </button>
+                                        </Col>
+                                    </Row>
+                                </Col>
+                            </Row>
+                            : ""}
+                    </Col>
+                </Row>
+            </Container>
         )
     }
 }
