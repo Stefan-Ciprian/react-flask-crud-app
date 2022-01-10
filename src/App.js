@@ -12,7 +12,7 @@ class App extends Component {
         this.state = {
             items: [],
             categories: [],
-            currentCategoryId: 1,
+            currentCategoryId: "1",
             editItemName: "",
             insertItemName: "",
             showAlert: false,
