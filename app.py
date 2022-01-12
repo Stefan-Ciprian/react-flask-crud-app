@@ -1,6 +1,8 @@
 from flaskapp import create_app
+from flaskapp.config import Config
 
 
 if __name__ == '__main__':
-    app = create_app()
+    config = Config()
+    app = create_app(config)
     app.run()

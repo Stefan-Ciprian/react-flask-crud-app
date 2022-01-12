@@ -1,6 +1,7 @@
 from flask import Blueprint, request
+from flaskapp.database import db_session
 from flaskapp.models import Category, Item
-from flaskapp.db import db
+
 
 items = Blueprint('items', __name__)
 
@@ -12,7 +13,7 @@ def index():
 
 @items.route('/get_categories', methods=['GET'])
 def get_categories():
-    categories = [row2dict(item) for item in db.session.query(Category).all()]
+    categories = [item.serialize for item in Category.query.all()]
 
     return {
         'categories': categories
@@ -21,7 +22,7 @@ def get_categories():
 
 @items.route('/get_items/<category_id>', methods=['GET'])
 def get_items(category_id):
-    category_items = [row2dict(item) for item in db.session.query(Item).filter_by(category_id=category_id).all()]
+    category_items = [item.serialize for item in Item.query.filter(Item.category_id == category_id).all()]
 
     return {
         'items': category_items
@@ -33,9 +34,9 @@ def insert_item():
     category_id = request.json.get('category_id')
     item_name = request.json.get('item_name')
 
-    item = Item(category_id=category_id, item_name=item_name)
-    db.session.add(item)
-    db.session.commit()
+    item = Item(item_name=item_name, category_id=category_id)
+    db_session.add(item)
+    db_session.commit()
 
     return {
         'status': True
@@ -47,9 +48,9 @@ def edit_item():
     item_id = request.json.get('item_id')
     new_item_name = request.json.get('new_item_name')
 
-    item = Item.query.filter_by(id=item_id).first()
+    item = Item.query.filter(Item.id == item_id).first()
     item.item_name = new_item_name
-    db.session.commit()
+    db_session.commit()
 
     return {
         'status': True
@@ -60,18 +61,10 @@ def edit_item():
 def delete_item():
     item_id = request.json.get('item_id')
 
-    item = Item.query.filter_by(id=item_id).first()
-    db.session.delete(item)
-    db.session.commit()
+    item = Item.query.filter(Item.id == item_id).first()
+    db_session.delete(item)
+    db_session.commit()
 
     return {
         'status': True
     }
-
-
-def row2dict(row):
-    d = {}
-    for column in row.__table__.columns:
-        d[column.name] = str(getattr(row, column.name))
-
-    return d

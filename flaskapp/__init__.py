@@ -1,19 +1,16 @@
 from flask import Flask
 from flaskapp.routes import items
+from flaskapp.database import db_session
 
 
-def create_app():
+def create_app(config):
     app = Flask(__name__, static_folder='build/', static_url_path='/')
 
     app.register_blueprint(items)
-    app.config["SQLALCHEMY_DATABASE_URI"] = 'sqlite:///database.db'
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["SECRET_KEY"] = 'secret_key'
+    app.config['TESTING'] = config.TESTING
 
-    from flaskapp.db import db
-    db.init_app(app)
-
-    with app.app_context():
-        db.create_all()
+    @app.teardown_appcontext
+    def shutdown_session(exception=None):
+        db_session.remove()
 
     return app

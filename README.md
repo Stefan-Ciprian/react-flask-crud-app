@@ -14,5 +14,3 @@ Requirements:
 ## Running Locally
     $ yarn start-api
     $ yarn start
-
-python init_db.py will create database.db
