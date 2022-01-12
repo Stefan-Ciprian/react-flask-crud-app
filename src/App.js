@@ -22,9 +22,19 @@ class App extends Component {
 
         this.handleChange = this.handleChange.bind(this);
         this.handleInsertChange = this.handleInsertChange.bind(this);
+        this.getCategoriesWithItems = this.getCategoriesWithItems.bind(this);
     }
 
     componentDidMount() {
+        this.getCategoriesWithItems();
+        this.run_interval = setInterval(this.getCategoriesWithItems, 1000);
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.run_interval);
+    }
+
+    getCategoriesWithItems() {
         this.getCategories();
         this.getItems(this.state.currentCategoryId);
     }

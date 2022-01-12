@@ -2,7 +2,7 @@
 
 Requirements:
     
-    $ python3.10, python3.10-dev, python3.10-venvn, node
+    $ python3.10, python3.10-dev, python3.10-venvn, node.js v17
 
 ## Setup
     $ sudo apt install python3.10-dev
@@ -11,6 +11,9 @@ Requirements:
     $ source env/bin/activate
     $ pip install -r requirements.txt
 
+## Run tests
+    $ ./run_tests.sh
+
 ## Running Locally
-    $ yarn start-api
+    $ ./run.sh
     $ yarn start
