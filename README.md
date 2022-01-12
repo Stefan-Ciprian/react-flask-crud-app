@@ -1,4 +1,4 @@
-# react-flask-base
+# react-flask-crud-app
 
 Requirements:
     
